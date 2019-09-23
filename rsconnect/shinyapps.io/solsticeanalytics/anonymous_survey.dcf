@@ -1,0 +1,12 @@
+name: anonymous_survey
+title: anonymous_survey
+username:
+account: solsticeanalytics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1180966
+bundleId: 2438432
+url: https://solsticeanalytics.shinyapps.io/anonymous_survey/
+when: 1569271345.09452
+asMultiple: FALSE
+asStatic: FALSE
