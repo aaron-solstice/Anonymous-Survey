@@ -12,14 +12,21 @@ put_last_column_in_front <- function(d){
   return(d[,c(length(d), 1:(length(d) - 1)  )]) 
 }
 
+
+make_data_long <- function(data){
+  data_long <- data %>% 
+    gather(question, answer, -Timestamp) %>% 
+    separate(question, into = c("q_num", "question_text"), sep = "[^[:alnum:]+]", extra = "merge", convert = T) %>% 
+    mutate(question_text = trimws(question_text),
+           q_num = trimws(q_num),
+           datestamp = as.Date(Timestamp,format = "%m/%d/%Y %H:%M:%S") )
+  
+  return(data_long)
+}
+
 analyze_dataset <- function(data) {
 
-data_long <- data %>% 
-  gather(question, answer, -Timestamp) %>% 
-  separate(question, into = c("q_num", "question_text"), sep = "[^[:alnum:]+]", extra = "merge", convert = T) %>% 
-  mutate(question_text = trimws(question_text),
-         q_num = trimws(q_num),
-         datestamp = as.Date(Timestamp,format = "%m/%d/%Y %H:%M:%S") )
+data_long <- make_data_long(data)
 
 max_date <- max(data_long$datestamp)
 
@@ -69,14 +76,18 @@ q_counts_percents_wide <- q_counts_percents %>%
   
 #aggregate vars
 
-agg_vars <- read_tsv("aggregate vars.tsv", col_names = F) %>% 
+agg_vars_qnum <- read_tsv("aggregate vars.tsv", col_names = F) %>% 
   cSplit(., 'X1', '$') %>% 
   gather(q_var, t, -X1_01) %>% 
-  separate(t, into = c("q_num", "question_text"), sep = "[^[:alnum:]+]", extra = "merge", convert = T) %>% 
+  separate(t, into = c("q_num", "question_text"), sep = "[^[:alnum:]+]", extra = "merge", convert = T) 
+
+agg_vars <- agg_vars_qnum %>% 
   filter(complete.cases(.),  !grepl("a", q_num), !grepl("b", q_num)) %>% 
   select(Grouping = 1, q_num) %>% 
   mutate(Grouping = as.character(Grouping),
          q_num = trimws(q_num))
+
+agg_vars_qnum_map <- agg_vars_qnum %>% filter(!is.na(q_num)) %>% select(-q_var) %>% rename(Grouping = X1_01)
 
 
 #summarize the responses by group:
